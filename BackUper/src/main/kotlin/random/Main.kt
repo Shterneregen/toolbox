@@ -16,48 +16,51 @@ fun main(args: Array<String>) {
             val propFile = args[1 + args.indexOf("-p")]
             createBackUps(propFile, createInNewFolder)
         }
-        else -> coloredPrintln("Specify property file using -p flag", Color.RED)
+        else -> errorPrintln("Specify property file using -p flag")
     }
 }
 
 fun createBackUps(propFile: String, createInNewFolder: Boolean) {
     if (!File(propFile).exists()) {
-        coloredPrintln("$propFile doesn't exist!", Color.RED)
+        errorPrintln("$propFile doesn't exist!")
         return
     }
-    val prop = Properties()
-    prop.load(FileInputStream(propFile))
+    val prop = Properties().apply { load(FileInputStream(propFile)) }
 
     val folderForBkps = File(prop["folderForBkps"] as String)
     println("Backup folder: ${folderForBkps.path}")
     prop.getProperty("files")?.split(",")
         ?.onEach { filePath -> createBkp(filePath, folderForBkps, createInNewFolder) }
-        ?: run { coloredPrintln("No files to back up found", Color.RED) }
+        ?: run { errorPrintln("No files to back up found") }
 }
 
 fun createBkp(filePath: String, folderForBkps: File, createInNewFolder: Boolean) {
     val file = File(filePath)
     if (!file.exists()) {
-        coloredPrintln("$filePath doesn't exist!", Color.RED)
+        errorPrintln("$filePath doesn't exist!")
         return
     }
 
-    val target = if (createInNewFolder) File("${folderForBkps.path}/${getCurrentDay()}/${file.name}")
-    else File("${folderForBkps.path}/${file.name}")
+    val target = File("${folderForBkps.path}/" + (if (createInNewFolder) "${getCurrentDay()}/" else "") + file.name)
 
     when {
         target.exists() && getFileSize(file) == getFileSize(target) -> {
-            coloredPrintln("${file.path} has not been modified!", Color.GREY)
+            coloredPrintln("${file.path} has not been modified!")
         }
         else -> {
             file.copyTo(target, true)
-            println("${file.path} copied!\t-->\t${coloredText(target.path, Color.GREEN)}")
+            println("${file.path} copied!\t-->\t${successPrintln(target.path)}")
         }
     }
 }
 
 fun coloredPrintln(text: String, color: Color = Color.GREY) = println(coloredText(text, color))
-fun coloredText(text: String, color: Color = Color.GREY) = "${color.code}$text${Color.RESET.code}"
+fun errorPrintln(text: String) = println(coloredText(text, Color.RED))
+fun successPrintln(text: String) = println(coloredText(text, Color.GREEN))
+fun coloredText(text: String, color: Color = Color.GREY): String {
+    return if (System.console() != null && System.getenv()["TERM"] != null) "${color.code}$text${Color.RESET.code}"
+    else text
+}
 
 fun fileAttributes(file: File): BasicFileAttributes =
     Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
