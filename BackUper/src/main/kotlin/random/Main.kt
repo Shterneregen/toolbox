@@ -8,6 +8,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 
+private val terminalSupportColoredOutput = isTerminalSupportColoredOutput()
+private val currentDay = getCurrentDayStr()
+
 fun main(args: Array<String>) {
     val createInNewFolder = args.contains("-n")
 
@@ -20,7 +23,7 @@ fun main(args: Array<String>) {
     }
 }
 
-fun createBackUps(propFile: String, createInNewFolder: Boolean) {
+private fun createBackUps(propFile: String, createInNewFolder: Boolean) {
     if (!File(propFile).exists()) {
         errorPrintln("$propFile doesn't exist!")
         return
@@ -34,14 +37,14 @@ fun createBackUps(propFile: String, createInNewFolder: Boolean) {
         ?: run { errorPrintln("No files to back up found") }
 }
 
-fun createBkp(filePath: String, folderForBkps: File, createInNewFolder: Boolean) {
+private fun createBkp(filePath: String, folderForBkps: File, createInNewFolder: Boolean) {
     val file = File(filePath)
     if (!file.exists()) {
         errorPrintln("$filePath doesn't exist!")
         return
     }
 
-    val target = File("${folderForBkps.path}/" + (if (createInNewFolder) "${getCurrentDay()}/" else "") + file.name)
+    val target = File("${folderForBkps.path}/" + (if (createInNewFolder) "$currentDay/" else "") + file.name)
 
     when {
         target.exists() && getFileSize(file) == getFileSize(target) -> {
@@ -49,25 +52,24 @@ fun createBkp(filePath: String, folderForBkps: File, createInNewFolder: Boolean)
         }
         else -> {
             file.copyTo(target, true)
-            println("${file.path} copied!\t-->\t${successPrintln(target.path)}")
+            println("${file.path} copied!\t-->\t${coloredText(target.path, Color.GREEN)}")
         }
     }
 }
 
-fun coloredPrintln(text: String, color: Color = Color.GREY) = println(coloredText(text, color))
-fun errorPrintln(text: String) = println(coloredText(text, Color.RED))
-fun successPrintln(text: String) = println(coloredText(text, Color.GREEN))
-fun coloredText(text: String, color: Color = Color.GREY): String {
-    return if (System.console() != null && System.getenv()["TERM"] != null) "${color.code}$text${Color.RESET.code}"
-    else text
-}
+private fun coloredPrintln(text: String, color: Color = Color.GREY) = println(coloredText(text, color))
+private fun errorPrintln(text: String) = println(coloredText(text, Color.RED))
+private fun coloredText(text: String, color: Color = Color.GREY): String =
+    if (terminalSupportColoredOutput) "${color.code}$text${Color.RESET.code}" else text
 
-fun fileAttributes(file: File): BasicFileAttributes =
+private fun isTerminalSupportColoredOutput() = System.console() != null && System.getenv()["TERM"] != null
+
+private fun fileAttributes(file: File): BasicFileAttributes =
     Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
 
-fun getFileSize(file: File) = fileAttributes(file).size()
+private fun getFileSize(file: File) = fileAttributes(file).size()
 
-fun getCurrentDay(): String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+private fun getCurrentDayStr(): String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
 
 
 enum class Color(val code: String) {
