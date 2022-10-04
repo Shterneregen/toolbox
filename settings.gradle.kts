@@ -1,4 +1,4 @@
-rootProject.name = "help-tools"
+rootProject.name = "toolbox"
 include(
     "BackUper",
     "parser"
