@@ -1,7 +1,7 @@
 import java.time.LocalDate
 import java.util.stream.IntStream
 
-// kotlinc -script time.kts
+// kotlinc -dates time.kts
 
 fun printDates(month: Month, year: Int) = IntStream.rangeClosed(1, month.daysInMonth).forEach() {
     val day = fillZeroForMonth(it)
