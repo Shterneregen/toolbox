@@ -38,6 +38,7 @@ object FileUtils {
             }
 
             addFilesToZip(files, target)
+            successPrintln("Archive '${target.path}' created")
             return
         }
 
@@ -51,7 +52,7 @@ object FileUtils {
             return
         }
 
-        val target = File("${folderForBkps.path}/" + (if (createInNewFolder) "$currentDay/" else "") + file.name)
+        val target = File("${folderForBkps.path}/${if (createInNewFolder) "$currentDay/" else ""}${file.name}")
 
         when {
             target.exists() && getFileSize(file) == getFileSize(target) -> {
@@ -60,7 +61,7 @@ object FileUtils {
 
             else -> {
                 file.copyTo(target, true)
-                println("${file.path} copied!\t-->\t${successPrintln(target.path)}")
+                successPrintln("${file.path} copied!\t-->\t${target.path}")
             }
         }
     }
@@ -68,6 +69,12 @@ object FileUtils {
     private fun addFilesToZip(files: List<String>, targetZipPath: File) {
         ZipOutputStream(BufferedOutputStream(FileOutputStream(targetZipPath))).use { out ->
             for (file in files) {
+                val target = File(file)
+                if (!target.exists()) {
+                    errorPrintln("$target doesn't exist!")
+                    continue
+                }
+                successPrintln("Adding '$file' to archive")
                 FileInputStream(file).use { fi ->
                     BufferedInputStream(fi).use { origin ->
                         val entry = ZipEntry(file.substring(file.lastIndexOf("/")))
