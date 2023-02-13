@@ -1,45 +1,37 @@
-import java.time.LocalDate
+import java.time.YearMonth
 import java.util.stream.IntStream
 
-// kotlinc -dates time.kts
+// Show days of the current month:
+//  kotlinc -script dates.kts
 
-fun printDates(month: Month, year: Int) = IntStream.rangeClosed(1, month.daysInMonth).forEach() {
-    val day = fillZeroForMonth(it)
-    println("${year}/${month.number}/${day}")
+// Show days of a specific month:
+//  kotlinc -script dates.kts -- -m
+
+// Show days of a specific month of a specific year:
+//  kotlinc -script dates.kts -- -m 6 -y 2026
+
+val now = YearMonth.now()
+val month = getArg("-m")?.let { it.toInt() } ?: now.monthValue
+val year = getArg("-y")?.let { it.toInt() } ?: now.year
+
+printDates(year, month)
+
+fun printDates(year: Int, month: Int) {
+    val yearMonth = YearMonth.of(year, month)
+    val monthStr = fillPrefixZero(yearMonth.monthValue)
+    IntStream.rangeClosed(1, yearMonth.lengthOfMonth()).forEach() {
+        val day = fillPrefixZero(it)
+        println("${yearMonth.year}/${monthStr}/${day}")
+    }
 }
 
-enum class Month(val number: String, val daysInMonth: Int) {
-    JANUARY("01", 31),
-    FEBRUARY("02", 28),
-    MARCH("03", 31),
-    APRIL("04", 30),
-    MAY("05", 31),
-    JUNE("06", 30),
-    JULY("07", 31),
-    AUGUST("08", 31),
-    SEPTEMBER("09", 30),
-    OCTOBER("10", 31),
-    NOVEMBER("11", 30),
-    DECEMBER("12", 31)
+fun getArg(arg: String): String? {
+    return if (args.isNotEmpty() && args.contains(arg)) {
+        if (args.size < args.indexOf(arg) + 2) {
+            throw IllegalArgumentException("Missed '${arg}' parameter!")
+        }
+        args[args.indexOf(arg) + 1]
+    } else null
 }
 
-if (args.isNotEmpty() && args.size >= 1) {
-    println(args[0])
-    val month = getMonth(args[0].toInt())
-    val year: Int = if (args.size > 1) args[1].toInt() else LocalDate.now().year
-    printDates(month, year)
-} else {
-    val now = LocalDate.now()
-    val month = getMonth(now.month.value)
-    val year = now.year
-    printDates(month, year)
-}
-// printDates(Month.JULY, 2022)
-
-fun getMonth(monthNum: Int): Month {
-    val month = fillZeroForMonth(monthNum)
-    return Month.values().find { it.number == month }
-        ?: throw IllegalArgumentException("No month found for $month")
-}
-
-fun fillZeroForMonth(month: Int) = if (month < 10) "0${month}" else month.toString()
+fun fillPrefixZero(month: Int) = if (month < 10) "0${month}" else month.toString()
