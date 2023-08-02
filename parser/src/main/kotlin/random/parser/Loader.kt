@@ -23,7 +23,11 @@ class Loader(private val personRepository: PersonRepository) : CommandLineRunner
 
         val file = File(fileToParse)
         if (file.exists()) {
-            file.forEachLine { personRepository.save(parsePerson(it)) }
+            val persons = mutableListOf<Person>()
+            file.forEachLine { persons.add(parsePerson(it)) }
+            personRepository.saveAll(persons)
+        } else {
+            log.info("File '$fileToParse' not found")
         }
 
         log.info("Records: {}", personRepository.count())

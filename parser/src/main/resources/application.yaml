@@ -22,3 +22,5 @@ spring:
     # Create/update tables structures by Entity classes
     hibernate.ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate.jdbc.batch_size: 200
