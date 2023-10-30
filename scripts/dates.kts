@@ -16,8 +16,8 @@ import java.util.stream.IntStream
 //  kotlinc -script dates.kts -- -w
 
 val now = YearMonth.now()
-val month = getStrArg("-m")?.let { it.toInt() } ?: now.monthValue
-val year = getStrArg("-y")?.let { it.toInt() } ?: now.year
+val month = getStrArg("-m")?.toInt() ?: now.monthValue
+val year = getStrArg("-y")?.toInt() ?: now.year
 val showDaysOfWeek = checkBooleanFlag("-w")
 
 printDates(year, month, showDaysOfWeek)
@@ -25,7 +25,7 @@ printDates(year, month, showDaysOfWeek)
 fun printDates(year: Int, month: Int, showDaysOfWeek: Boolean = false) {
     val yearMonth = YearMonth.of(year, month)
     val monthStr = fillPrefixZero(yearMonth.monthValue)
-    IntStream.rangeClosed(1, yearMonth.lengthOfMonth()).forEach() {
+    IntStream.rangeClosed(1, yearMonth.lengthOfMonth()).forEach {
         val day = fillPrefixZero(it)
         val atDay = yearMonth.atDay(it)
 
